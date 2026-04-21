@@ -99,13 +99,12 @@
   </footer>
 
   <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQy9Hucr-a3xr7ovYv3lnPgmPuXr7kY9YcTvfaW1M1uu_OacPWe0Q2qipSnr-KyoFGSKvbXf1n6FYlV/pub?gid=0&single=true&output=csv";
+    // 🔥 حل مشكلة الكاش نهائيًا
+    const baseURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQy9Hucr-a3xr7ovYv3lnPgmPuXr7kY9YcTvfaW1M1uu_OacPWe0Q2qipSnr-KyoFGSKvbXf1n6FYlV/pub?gid=0&single=true&output=csv";
 
     async function check() {
-      let code = document.getElementById("code").value;
+      let code = document.getElementById("code").value.trim();
       let result = document.getElementById("result");
-
-      code = String(code).trim();
 
       if(code === ""){
         result.innerHTML = "من فضلك ادخل الكود";
@@ -116,6 +115,9 @@
       result.innerHTML = "جاري التحقق...";
       result.className = "";
 
+      // 🔥 كل مرة رابط جديد لمنع الكاش
+      const sheetURL = baseURL + "&t=" + new Date().getTime();
+
       try {
         let response = await fetch(sheetURL, { cache: "no-store" });
         let data = await response.text();
@@ -123,26 +125,22 @@
         let rows = data.trim().split(/\r?\n/);
         let found = false;
 
-        // 🔥 الجزء المعدل فقط
         for(let i = 0; i < rows.length; i++){
           let cols = rows[i].split(",");
 
           if(cols.length < 2) continue;
 
-          let sheetCode = String(cols[0]).replace(/\s/g,'').trim();
+          let sheetCode = String(cols[0]).trim();
           let status = String(cols[1]).trim();
-          let inputCode = String(code).replace(/\s/g,'').trim();
 
-          if(inputCode === sheetCode){
+          if(code === sheetCode){
             found = true;
 
-            if(status === "تم"){
-              result.innerHTML = "✅ تم إنهاء المنصة";
-              result.className = "success";
-            } else {
-              result.innerHTML = "❌ لم يتم بعد";
-              result.className = "fail";
-            }
+            result.innerHTML = (status === "تم")
+              ? "✅ تم إنهاء المنصة"
+              : "❌ " + status;
+
+            result.className = (status === "تم") ? "success" : "fail";
             break;
           }
         }
