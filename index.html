@@ -51,8 +51,9 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: #1e3c72;
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
     }
 
     #result {
@@ -61,13 +62,8 @@
       font-weight: bold;
     }
 
-    .success {
-      color: green;
-    }
-
-    .fail {
-      color: red;
-    }
+    .success { color: green; }
+    .fail { color: red; }
 
     .footer {
       position: fixed;
@@ -89,7 +85,7 @@
 
     <input type="text" id="code" placeholder="ادخل كود الطالب">
     <br>
-    <button onclick="check()">تحقق</button>
+    <button id="btn" onclick="check()">تحقق</button>
 
     <div id="result"></div>
   </div>
@@ -99,12 +95,17 @@
   </footer>
 
   <script>
-    // 🔥 حل مشكلة الكاش نهائيًا
+    let requestId = 0;
+    let isLoading = false;
+
     const baseURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQy9Hucr-a3xr7ovYv3lnPgmPuXr7kY9YcTvfaW1M1uu_OacPWe0Q2qipSnr-KyoFGSKvbXf1n6FYlV/pub?gid=0&single=true&output=csv";
 
     async function check() {
+      if (isLoading) return;
+
       let code = document.getElementById("code").value.trim();
       let result = document.getElementById("result");
+      let btn = document.getElementById("btn");
 
       if(code === ""){
         result.innerHTML = "من فضلك ادخل الكود";
@@ -112,15 +113,23 @@
         return;
       }
 
+      isLoading = true;
+      btn.disabled = true;
+
+      requestId++;
+      let currentRequest = requestId;
+
       result.innerHTML = "جاري التحقق...";
       result.className = "";
 
-      // 🔥 كل مرة رابط جديد لمنع الكاش
-      const sheetURL = baseURL + "&t=" + new Date().getTime();
+      const sheetURL = baseURL + "&t=" + Date.now();
 
       try {
         let response = await fetch(sheetURL, { cache: "no-store" });
         let data = await response.text();
+
+        // تجاهل أي رد قديم
+        if(currentRequest !== requestId) return;
 
         let rows = data.trim().split(/\r?\n/);
         let found = false;
@@ -130,8 +139,8 @@
 
           if(cols.length < 2) continue;
 
-          let sheetCode = String(cols[0]).trim();
-          let status = String(cols[1]).trim();
+          let sheetCode = cols[0].trim();
+          let status = cols[1].trim();
 
           if(code === sheetCode){
             found = true;
@@ -154,6 +163,9 @@
         result.innerHTML = "❌ حصل خطأ في الاتصال";
         result.className = "fail";
       }
+
+      isLoading = false;
+      btn.disabled = false;
     }
   </script>
 
