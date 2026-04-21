@@ -102,10 +102,8 @@
     const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQy9Hucr-a3xr7ovYv3lnPgmPuXr7kY9YcTvfaW1M1uu_OacPWe0Q2qipSnr-KyoFGSKvbXf1n6FYlV/pub?gid=0&single=true&output=csv";
 
     async function check() {
-      let code = document.getElementById("code").value;
+      let code = document.getElementById("code").value.trim();
       let result = document.getElementById("result");
-
-      code = String(code).trim();
 
       if(code === ""){
         result.innerHTML = "من فضلك ادخل الكود";
@@ -120,19 +118,18 @@
         let response = await fetch(sheetURL, { cache: "no-store" });
         let data = await response.text();
 
-        let rows = data.split("\n");
         let found = false;
 
-        // 🔥 التعديل هنا فقط
-        for(let i = 1; i < rows.length; i++){
+        // 🔥 التعديل هنا فقط (CSV parsing ثابت)
+        let rows = data.trim().split(/\r?\n/);
+
+        for(let i = 0; i < rows.length; i++){
           let cols = rows[i].split(",");
 
-          let sheetCode = String(cols[0] || "").replace(/\D/g,'').trim();
+          let sheetCode = String(cols[0] || "").trim();
           let status = String(cols[1] || "").trim();
 
-          let inputCode = String(code).replace(/\D/g,'').trim();
-
-          if(inputCode === sheetCode){
+          if(code === sheetCode){
             found = true;
 
             if(status === "تم"){
