@@ -63,94 +63,77 @@
 
     .success { color: green; }
     .fail { color: red; }
-
-    .footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      text-align: center;
-      padding: 10px;
-      font-size: 13px;
-      color: white;
-      background: rgba(0,0,0,0.3);
-    }
   </style>
 </head>
 
 <body>
 
-  <div class="box">
-    <h2>التحقق من المنصة</h2>
+<div class="box">
+  <h2>التحقق من المنصة</h2>
 
-    <input type="text" id="code" placeholder="ادخل كود الطالب">
-    <br>
-    <button onclick="check()">تحقق</button>
+  <input type="text" id="code" placeholder="ادخل كود الطالب">
+  <br>
+  <button onclick="check()">تحقق</button>
 
-    <div id="result"></div>
-  </div>
+  <div id="result"></div>
+</div>
 
-  <footer class="footer">
-    © 2026 | All Rights Reserved | Ahmed Khaled
-  </footer>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  <script>
-    const sheetURL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQy9Hucr-a3xr7ovYv3lnPgmPuXr7kY9YcTvfaW1M1uu_OacPWe0Q2qipSnr-KyoFGSKvbXf1n6FYlV/pub?gid=0&single=true&output=csv";
+// 🔥 بيانات مشروعك (جاهزة)
+const firebaseConfig = {
+  apiKey: "AIzaSyAt6ctdyQgA6yTO6QZGYyCZltO-ZTMEU5w",
+  authDomain: "platform-499ca.firebaseapp.com",
+  databaseURL: "https://platform-499ca-default-rtdb.firebaseio.com",
+  projectId: "platform-499ca"
+};
 
-    async function check() {
-      let code = document.getElementById("code").value.trim();
-      let result = document.getElementById("result");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-      if(code === ""){
-        result.innerHTML = "من فضلك ادخل الكود";
-        result.className = "fail";
-        return;
-      }
+window.check = async function(){
 
-      result.innerHTML = "جاري التحقق...";
-      result.className = "";
+  let code = document.getElementById("code").value.trim();
+  let result = document.getElementById("result");
 
-      try {
-        let response = await fetch(sheetURL + "&t=" + Date.now(), { cache: "no-store" });
-        let data = await response.text();
+  if(code === ""){
+    result.innerHTML = "من فضلك ادخل الكود";
+    result.className = "fail";
+    return;
+  }
 
-        let rows = data.trim().split(/\r?\n/);
-        let found = false;
+  result.innerHTML = "جاري التحقق...";
+  result.className = "";
 
-        for(let i = 1; i < rows.length; i++){
-          let row = rows[i].trim();
-          if(!row) continue;
+  try {
 
-          let cols = row.split(",");
-          if(cols.length < 2) continue;
+    const dbRef = ref(db);
+    const snapshot = await get(child(dbRef, `students/${code}`));
 
-          let sheetCode = cols[0].replace(/\D/g,'').trim();
-          let status = cols[1].trim();
-          let inputCode = code.replace(/\D/g,'').trim();
+    if(snapshot.exists()){
+      let data = snapshot.val();
 
-          if(inputCode === sheetCode){
-            found = true;
-
-            result.innerHTML = (status === "تم")
-              ? "✅ تم إنهاء المنصة"
-              : "❌ " + status;
-
-            result.className = (status === "تم") ? "success" : "fail";
-            break;
-          }
-        }
-
-        if(!found){
-          result.innerHTML = "⚠️ الكود غير موجود";
-          result.className = "fail";
-        }
-
-      } catch (e) {
-        result.innerHTML = "❌ حصل خطأ في الاتصال";
+      if(data.status === "تم"){
+        result.innerHTML = "✅ تم إنهاء المنصة";
+        result.className = "success";
+      } else {
+        result.innerHTML = "❌ " + data.status;
         result.className = "fail";
       }
+
+    } else {
+      result.innerHTML = "⚠️ الكود غير موجود";
+      result.className = "fail";
     }
-  </script>
+
+  } catch (e) {
+    result.innerHTML = "❌ حصل خطأ في الاتصال";
+    result.className = "fail";
+  }
+}
+</script>
 
 </body>
 </html>
