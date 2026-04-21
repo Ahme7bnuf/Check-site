@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>اختبار الاتصال</title>
+  <title>التحقق من المنصة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -32,6 +32,15 @@
       color: #1e3c72;
     }
 
+    input {
+      width: 90%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
     button {
       padding: 10px 20px;
       border: none;
@@ -40,6 +49,10 @@
       color: white;
       font-size: 16px;
       cursor: pointer;
+    }
+
+    button:hover {
+      background: #1e3c72;
     }
 
     #result {
@@ -55,45 +68,93 @@
     .fail {
       color: red;
     }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+      color: white;
+      background: rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 
 <body>
 
   <div class="box">
-    <h2>اختبار الاتصال</h2>
+    <h2>التحقق من المنصة</h2>
 
-    <button onclick="check()">ابدأ الاختبار</button>
+    <input type="text" id="code" placeholder="ادخل كود الطالب">
+    <br>
+    <button onclick="check()">تحقق</button>
 
     <div id="result"></div>
   </div>
+
+  <footer class="footer">
+    © 2026 | All Rights Reserved | Ahmed Khaled
+  </footer>
 
   <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQy9Hucr-a3xr7ovYv3lnPgmPuXr7kY9YcTvfaW1M1uu_OacPWe0Q2qipSnr-KyoFGSKvbXf1n6FYlV/pub?gid=0&single=true&output=csv";
 
     async function check() {
+      let code = document.getElementById("code").value;
       let result = document.getElementById("result");
 
-      result.innerHTML = "جاري اختبار الاتصال...";
+      code = String(code).trim();
+
+      if(code === ""){
+        result.innerHTML = "من فضلك ادخل الكود";
+        result.className = "fail";
+        return;
+      }
+
+      result.innerHTML = "جاري التحقق...";
       result.className = "";
 
       try {
         let response = await fetch(sheetURL, { cache: "no-store" });
         let data = await response.text();
 
-        if(data && data.length > 0){
-          result.innerHTML = "✅ الداتا وصلت بنجاح";
-          result.className = "success";
-          console.log(data);
-        } else {
-          result.innerHTML = "❌ الداتا فاضية";
+        let rows = data.trim().split(/\r?\n/);
+        let found = false;
+
+        // 🔥 الجزء المعدل فقط
+        for(let i = 0; i < rows.length; i++){
+          let cols = rows[i].split(",");
+
+          if(cols.length < 2) continue;
+
+          let sheetCode = String(cols[0]).replace(/\s/g,'').trim();
+          let status = String(cols[1]).trim();
+          let inputCode = String(code).replace(/\s/g,'').trim();
+
+          if(inputCode === sheetCode){
+            found = true;
+
+            if(status === "تم"){
+              result.innerHTML = "✅ تم إنهاء المنصة";
+              result.className = "success";
+            } else {
+              result.innerHTML = "❌ لم يتم بعد";
+              result.className = "fail";
+            }
+            break;
+          }
+        }
+
+        if(!found){
+          result.innerHTML = "⚠️ الكود غير موجود";
           result.className = "fail";
         }
 
       } catch (e) {
-        result.innerHTML = "❌ مفيش اتصال خالص";
+        result.innerHTML = "❌ حصل خطأ في الاتصال";
         result.className = "fail";
-        console.log(e);
       }
     }
   </script>
