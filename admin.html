@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة الأدمن</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      direction: rtl;
+    }
+
+    .box {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 350px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      color: #1e3c72;
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button {
+      width: 95%;
+      padding: 10px;
+      background: #2a5298;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1e3c72;
+    }
+
+    #msg {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .success { color: green; }
+    .fail { color: red; }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>لوحة التحكم</h2>
+
+  <input type="text" id="code" placeholder="كود الطالب">
+  
+  <select id="status">
+    <option value="تم">تم</option>
+    <option value="لم يتم">لم يتم</option>
+  </select>
+
+  <button onclick="add()">إضافة / تحديث</button>
+
+  <div id="msg"></div>
+</div>
+
+<script>
+  // 👇 نفس ملف الشيت بتاعك
+  const sheetURL = "PUT_YOUR_GOOGLE_SHEET_SCRIPT_URL_HERE";
+
+  async function add() {
+    let code = document.getElementById("code").value.trim();
+    let status = document.getElementById("status").value;
+    let msg = document.getElementById("msg");
+
+    if(code === ""){
+      msg.innerHTML = "اكتب الكود";
+      msg.className = "fail";
+      return;
+    }
+
+    try {
+      // إرسال البيانات (هنا محتاج Google Apps Script أو Firebase لاحقًا)
+      await fetch(sheetURL, {
+        method: "POST",
+        body: JSON.stringify({
+          code: code,
+          status: status
+        })
+      });
+
+      msg.innerHTML = "تمت الإضافة ✔";
+      msg.className = "success";
+
+    } catch (e) {
+      msg.innerHTML = "حصل خطأ";
+      msg.className = "fail";
+    }
+  }
+</script>
+
+</body>
+</html>
