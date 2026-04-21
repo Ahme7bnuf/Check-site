@@ -123,13 +123,16 @@
         let rows = data.split("\n");
         let found = false;
 
+        // 🔥 التعديل هنا فقط
         for(let i = 1; i < rows.length; i++){
           let cols = rows[i].split(",");
 
-          let sheetCode = String(cols[0] || "").trim();
+          let sheetCode = String(cols[0] || "").replace(/\D/g,'').trim();
           let status = String(cols[1] || "").trim();
 
-          if(code === sheetCode){
+          let inputCode = String(code).replace(/\D/g,'').trim();
+
+          if(inputCode === sheetCode){
             found = true;
 
             if(status === "تم"){
